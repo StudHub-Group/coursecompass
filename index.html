@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CourseCompass — Honest university course reviews</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://www.gstatic.com/firebasejs/12.19.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.19.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore-compat.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&family=Source+Sans+3:wght@700&display=swap" rel="stylesheet">
+<script src="js/tailwind-config.js"></script>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-background text-foreground font-sans antialiased">
+<div id="app" class="flex min-h-screen flex-col"></div>
+<div id="modal-root"></div>
+<div id="toast-root" class="fixed bottom-4 right-4 z-[100] flex flex-col items-end gap-2"></div>
+
+<button id="feedback-fab" type="button" title="Send feedback" class="fixed bottom-4 left-4 z-[90] rounded-full border border-border bg-card text-sm font-medium shadow-lg">
+  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-accent shrink-0"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+  <span class="fb-text" id="feedback-fab-text">Feedback</span>
+</button>
+
+<!--
+  Scripts are plain (non-module) files loaded in dependency order, exactly
+  matching the order this code used to run in as one inline <script> block.
+  They all share the same global scope, so load order matters: each file
+  below may rely on globals (functions, consts) defined by the ones above it.
+-->
+<script src="js/utils.js"></script>
+<script src="js/countries.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/persistence.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/helpers.js"></script>
+<script src="js/data.js"></script>
+<script src="js/components/footer.js"></script>
+<script src="js/components/header.js"></script>
+<script src="js/views/auth.js"></script>
+<script src="js/components/language-picker.js"></script>
+<script src="js/views/landing.js"></script>
+<script src="js/views/dashboard.js"></script>
+<script src="js/views/course-detail.js"></script>
+<script src="js/views/profile.js"></script>
+<script src="js/views/settings.js"></script>
+<script src="js/views/about.js"></script>
+<script src="js/views/contact.js"></script>
+<script src="js/components/dialogs.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

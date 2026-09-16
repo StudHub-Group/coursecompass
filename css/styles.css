@@ -1,0 +1,38 @@
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;white-space:nowrap;border-radius:.375rem;font-size:.875rem;font-weight:500;cursor:pointer;transition:background-color .15s,color .15s;border:1px solid transparent}
+.btn:disabled{pointer-events:none;opacity:.5}
+.btn-primary{background:#1B1B1B;color:#FAF8F5;height:2.25rem;padding:0 1rem;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.btn-primary:hover{background:rgba(27,27,27,.9)}
+.btn-outline{background:#fff;border-color:#E3DED6;height:2.25rem;padding:0 1rem;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.btn-outline:hover{background:#F2EFE9}
+.btn-ghost{height:2.25rem;padding:0 1rem}
+.btn-ghost:hover{background:#F2EFE9}
+.btn-sm{height:2rem;padding:0 .75rem;font-size:.75rem}
+.btn-danger{color:#b42318}
+.btn-danger:hover{background:#FEF3F2}
+.input,.select{width:100%;height:2.25rem;border:1px solid #E3DED6;background:transparent;border-radius:.375rem;padding:0 .75rem;font-size:.875rem;box-shadow:0 1px 2px rgba(0,0,0,.03);outline:none;font-family:inherit;color:inherit}
+.input:focus,.select:focus{border-color:#1B1B1B;box-shadow:0 0 0 1px #1B1B1B}
+.input:disabled{opacity:.6;cursor:not-allowed}
+.select{appearance:none;-webkit-appearance:none;cursor:pointer;padding-right:2rem}
+textarea.input{height:auto;min-height:5rem;padding:.5rem .75rem;resize:vertical;line-height:1.5}
+.switch{display:inline-flex;align-items:center;width:2.25rem;height:1.25rem;border-radius:9999px;border:2px solid transparent;cursor:pointer;transition:background-color .15s;flex-shrink:0;padding:0}
+.switch[data-state="checked"]{background:#1B1B1B}
+.switch[data-state="unchecked"]{background:#E3DED6}
+.switch-thumb{display:block;width:1rem;height:1rem;border-radius:9999px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .15s}
+.switch-thumb[data-state="checked"]{transform:translateX(1rem)}
+.switch-thumb[data-state="unchecked"]{transform:translateX(0)}
+.line-clamp-2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+@keyframes cc-in{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:none}}
+.cc-dialog-in{animation:cc-in .18s ease-out}
+html{scroll-behavior:smooth}
+/* ---- Studhub logo (exact colours #005ce5 / #FFFFFF / #000000) ---- */
+.sh-logo{display:inline-flex;align-items:stretch;line-height:1;font-family:'Source Sans 3','Source Sans Pro',system-ui,sans-serif;font-weight:700;letter-spacing:-0.02em;vertical-align:middle}
+.sh-logo .sh-stud{color:#000000;background-color:#FFFFFF;border-radius:5pt;display:inline-flex;align-items:center;padding:0.16em;padding-right:0.8em;margin-right:-0.64em;}
+.sh-logo .sh-hub{background:#005ce5;color:#FFFFFF;display:inline-flex;align-items:center;padding:0.16em 0.16em;border-radius:0.22em;margin-left:-0.02em}
+/* ---- Floating feedback button (collapsed, expands on hover) ---- */
+#feedback-fab{display:inline-flex;align-items:center;padding:.6rem;max-width:2.75rem;overflow:hidden;white-space:nowrap;transition:max-width .28s cubic-bezier(.16,1,.32,1),padding .28s cubic-bezier(.16,1,.32,1),transform .15s}
+#feedback-fab:hover{max-width:12rem;padding:.6rem 1rem;transform:translateY(-2px)}
+#feedback-fab .fb-text{max-width:0;opacity:0;overflow:hidden;margin-left:0;transition:max-width .28s cubic-bezier(.16,1,.32,1),opacity .18s ease,margin-left .28s cubic-bezier(.16,1,.32,1)}
+#feedback-fab:hover .fb-text{max-width:8rem;opacity:1;margin-left:.5rem}
+.chip-toggle{display:inline-flex;align-items:center;gap:.35rem;border:1px solid #E3DED6;border-radius:.375rem;padding:.25rem .6rem;font-size:.75rem;cursor:pointer;transition:all .15s}
+.chip-toggle[data-active="1"]{background:#1B1B1B;color:#FAF8F5;border-color:#1B1B1B}
+.chip-toggle[data-active="1"] svg{color:#FAF8F5}
