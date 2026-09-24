@@ -13,6 +13,23 @@ const CHEVRON='<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" vi
 const TRASH='<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>';
 const XSMALL='<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
 
+// ---- Double opt-in helpers (see finishSignup / verify.js) ----
+// A cryptographically random raw token — crypto.getRandomValues, not
+// Math.random, since this is the one-time secret that goes out in the email.
+function randomToken(){
+  const bytes=new Uint8Array(24);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');
+}
+// SHA-256 of a string, hex-encoded. Only the hash is ever stored in
+// Firestore — the raw token exists only in the email itself, so reading your
+// own profile doc never reveals a usable secret.
+async function sha256Hex(str){
+  const data=new TextEncoder().encode(str);
+  const digest=await crypto.subtle.digest('SHA-256',data);
+  return Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,'0')).join('');
+}
+
 /* ---- Studhub logo: HTML spans with proper rounded blue square ---- */
 function studhubLogo(size){
   const fs = size || 22;
