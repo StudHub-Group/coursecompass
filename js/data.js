@@ -99,6 +99,20 @@ async function afterAuthSuccess(opts){
   const profileData=profileSnap.exists?profileSnap.data():null;
   const verified=authUser.emailVerified||(profileData&&profileData.verified===true);
   if(!verified){
+    // If we're here because verify.js sent an unauthenticated visitor to
+    // sign in first, this is the moment right after that sign-in succeeds —
+    // finish redeeming their link now instead of stranding them on a
+    // generic check-email screen with no memory of what they clicked.
+    if(state.pendingVerify&&state.pendingVerify.uid===authUser.uid){
+      const{uid,token}=state.pendingVerify;
+      state.pendingVerify=null;
+      const outcome=await attemptVerifyToken(uid,token);
+      if(outcome==='success'){
+        await afterAuthSuccess(opts); // re-run now that verified is true
+        return;
+      }
+      // token invalid/expired/error — fall through to the normal screen below
+    }
     enterCheckEmailStep(authUser.email);
     return;
   }
