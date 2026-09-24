@@ -69,6 +69,7 @@ async function finishSignup(instKey,opts){
     return;
   }
   const uid=cred.user.uid;
+  let rawToken,verifyLink;
 
   try{
     let universityId=instKey;
@@ -82,9 +83,18 @@ async function finishSignup(instKey,opts){
       _uniCache=null; // invalidate the search cache so the new entry is findable
     }
     if(!universityId) throw new Error('No university to link this account to.');
+
+    // Double opt-in: a random token that only ever exists in the email
+    // itself — Firestore stores just its SHA-256 hash, so reading your own
+    // profile doc never reveals anything a verify link could be forged from.
+    rawToken=randomToken();
+    const verificationHash=await sha256Hex(rawToken);
+    verifyLink=window.location.origin+window.location.pathname+'#/verify?uid='+encodeURIComponent(uid)+'&token='+encodeURIComponent(rawToken);
+
     await db.collection('profiles').doc(uid).set({
       full_name:fullName,email:s.email,university_id:universityId,
-      interface_lang:'',anon_default:false,created_at:FieldValue.serverTimestamp()
+      interface_lang:'',anon_default:false,created_at:FieldValue.serverTimestamp(),
+      verified:false,verificationHash:verificationHash
     });
   }catch(error){
     showAuthError(error.message);
@@ -94,12 +104,13 @@ async function finishSignup(instKey,opts){
     return;
   }
 
-  // Firebase has no "confirm your email before you can sign in" gate like
-  // Supabase does — it signs the user in immediately on account creation.
-  // afterAuthSuccess() below checks emailVerified itself and, since it's
-  // false at this point, routes to the check-email screen instead of the
-  // dashboard. The continue URL brings them back to wherever this app is
-  // hosted after they click the link, instead of Firebase's generic page.
+  // Email delivery is separate from account creation — if either send fails
+  // the account still exists, and the check-email screen's Resend button
+  // covers retrying. EmailJS is the primary path, since it's what actually
+  // reaches university inboxes; Firebase's own mail is a free bonus attempt
+  // in case it *does* get through for some institution's filters — either
+  // one satisfies the gate in afterAuthSuccess().
+  sendVerificationEmail(s.email,fullName,verifyLink).catch(error=>console.error(error));
   const actionCodeSettings={url:window.location.origin+window.location.pathname};
   cred.user.sendEmailVerification(actionCodeSettings).catch(error=>console.error(error));
 
@@ -120,8 +131,14 @@ async function handleResendVerification(btn){
   if(!auth.currentUser) return;
   btn.disabled=true;
   try{
+    const uid=auth.currentUser.uid;
+    const rawToken=randomToken();
+    const verificationHash=await sha256Hex(rawToken);
+    await db.collection('profiles').doc(uid).update({verificationHash:verificationHash});
+    const verifyLink=window.location.origin+window.location.pathname+'#/verify?uid='+encodeURIComponent(uid)+'&token='+encodeURIComponent(rawToken);
+    await sendVerificationEmail(auth.currentUser.email,state.signup.name,verifyLink);
     const actionCodeSettings={url:window.location.origin+window.location.pathname};
-    await auth.currentUser.sendEmailVerification(actionCodeSettings);
+    auth.currentUser.sendEmailVerification(actionCodeSettings).catch(()=>{});
     toast(t('toast.verification_email_sent'));
   }catch(error){
     toast(t('toast.could_not_send_verification',{error:error.message}));
@@ -133,17 +150,17 @@ async function handleCheckVerification(btn){
   if(!auth.currentUser) return;
   btn.disabled=true;
   try{
-    // emailVerified is cached client-side, so it won't reflect a click on
-    // the emailed link until the local user record is reloaded.
-    await auth.currentUser.reload();
+    await auth.currentUser.reload().catch(()=>{}); // refreshes Firebase's own bonus signal too, best-effort
+    const snap=await db.collection('profiles').doc(auth.currentUser.uid).get();
+    const verified=auth.currentUser.emailVerified||(snap.exists&&snap.data().verified===true);
+    if(!verified){
+      btn.disabled=false;
+      toast(t('toast.still_not_verified'));
+      return;
+    }
   }catch(error){
     btn.disabled=false;
     toast(t('toast.could_not_check_verification'));
-    return;
-  }
-  if(!auth.currentUser.emailVerified){
-    btn.disabled=false;
-    toast(t('toast.still_not_verified'));
     return;
   }
   // showLangPrompt:false — render()'s own first-login check still shows the
