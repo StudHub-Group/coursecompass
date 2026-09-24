@@ -8,6 +8,7 @@
 <script src="https://www.gstatic.com/firebasejs/12.19.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.19.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400&family=Source+Sans+3:wght@700&display=swap" rel="stylesheet">
@@ -25,16 +26,15 @@
 </button>
 
 <!--
-  
   Scripts are plain (non-module) files loaded in dependency order, exactly
   matching the order this code used to run in as one inline <script> block.
   They all share the same global scope, so load order matters: each file
   below may rely on globals (functions, consts) defined by the ones above it.
-  
 -->
 <script src="js/utils.js"></script>
 <script src="js/countries.js"></script>
 <script src="js/firebase-config.js"></script>
+<script src="js/emailjs-config.js"></script>
 <script src="js/persistence.js"></script>
 <script src="js/i18n.js"></script>
 <script src="js/helpers.js"></script>
@@ -44,6 +44,7 @@
 <script src="js/views/auth.js"></script>
 <script src="js/components/language-picker.js"></script>
 <script src="js/views/landing.js"></script>
+<script src="js/views/verify.js"></script>
 <script src="js/views/dashboard.js"></script>
 <script src="js/views/course-detail.js"></script>
 <script src="js/views/profile.js"></script>
