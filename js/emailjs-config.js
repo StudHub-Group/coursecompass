@@ -6,7 +6,7 @@
 // (Public Key). The public key is safe to expose client-side; EmailJS is
 // designed for that, unlike a Resend-style secret API key.
 const EMAILJS_SERVICE_ID='service_nmolbih';
-const EMAILJS_VERIFY_TEMPLATE_ID='template_uq4c1oe';
+const EMAILJS_VERIFY_TEMPLATE_ID='template_kr36z29';
 const EMAILJS_PUBLIC_KEY='mSV_pJ0gw0GY0guSf';
 
 emailjs.init({
