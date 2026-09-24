@@ -83,25 +83,27 @@ async function afterAuthSuccess(opts){
   opts=opts||{};
   const authUser=auth.currentUser;
   if(!authUser) return;
-  // Double opt-in gate: Firebase signs the user in immediately on both
-  // createUserWithEmailAndPassword and signInWithEmailAndPassword, before
-  // they've clicked the link in their confirmation email. emailVerified is
-  // cached on the client and only refreshes via authUser.reload(), which is
-  // what the "I've verified — continue" button on the check-email screen
-  // does before calling this function again. Checking this first (before any
-  // Firestore read) also means a signup's early onAuthStateChanged firing —
-  // which can race ahead of finishSignup() creating the profile doc — no
-  // longer risks showing a spurious "could not load profile" toast.
-  if(!authUser.emailVerified){
-    enterCheckEmailStep(authUser.email);
-    return;
-  }
   let profileSnap;
   try{
     profileSnap=await db.collection('profiles').doc(authUser.uid).get();
   }catch(e){console.error(e);toast(t('toast.could_not_load_profile'));return}
+  // Double opt-in gate. We primarily trust our own EmailJS-delivered link
+  // (profile.verified), since Firebase's own verification mail often gets
+  // filtered by university mail systems — see the setup notes. Firebase's
+  // native authUser.emailVerified is still honored too, as a bonus signal
+  // for any institution whose filters don't block firebaseapp.com. Checking
+  // this from the same read used to build the profile below (rather than a
+  // separate round trip) also means a signup's early onAuthStateChanged
+  // firing — which can race ahead of finishSignup() creating the profile
+  // doc — just quietly reads "not verified yet" instead of erroring.
+  const profileData=profileSnap.exists?profileSnap.data():null;
+  const verified=authUser.emailVerified||(profileData&&profileData.verified===true);
+  if(!verified){
+    enterCheckEmailStep(authUser.email);
+    return;
+  }
   if(!profileSnap.exists){toast(t('toast.could_not_load_profile'));return}
-  const profile=profileSnap.data();
+  const profile=profileData;
   if(!profile.university_id){toast(t('toast.could_not_link_university'));return}
   await loadUniversity(profile.university_id);
   user={
