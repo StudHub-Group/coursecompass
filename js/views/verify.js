@@ -21,50 +21,60 @@ function renderVerify(){
     '<div class="mt-4">'+(panels[status]||panels.checking)+'</div></main>';
 }
 
+// Shared by bindVerify() (visiting the link directly, already signed in) and
+// by afterAuthSuccess() (resuming a pending link right after a sign-in that
+// was only reached because this same link sent them to sign in first).
+// Returns 'success' | 'invalid' | 'error'. Requires being signed in as uid —
+// that's what the Firestore rule checks — the caller is responsible for that.
+async function attemptVerifyToken(uid,token){
+  try{
+    const ref=db.collection('profiles').doc(uid);
+    const snap=await ref.get();
+    if(!snap.exists) return 'invalid';
+    const profile=snap.data();
+    if(profile.verified===true) return 'success'; // already done — e.g. link clicked twice
+    const hash=await sha256Hex(token);
+    if(!profile.verificationHash||profile.verificationHash!==hash) return 'invalid';
+    await ref.update({verified:true,verificationHash:FieldValue.delete()});
+    return 'success';
+  }catch(error){
+    console.error(error);
+    return 'error';
+  }
+}
+
 // Guards against re-processing the same link when render() re-dispatches to
 // bindVerify() after we call render() ourselves below to show the outcome.
+// Scoped to the "actually doing the check" path only, so a need-signin
+// screen followed by a real retry (after signing in, on a fresh page load)
+// isn't silently swallowed by this guard.
 let _verifyingKey=null;
 
 async function bindVerify(){
   const {uid,token}=parseVerifyParams();
+  if(!uid||!token){state.verifyStatus='invalid';render();return}
+
+  if(!auth.currentUser||auth.currentUser.uid!==uid){
+    // Remember this link so signing in picks up right where this left off —
+    // afterAuthSuccess() checks state.pendingVerify once the sign-in
+    // succeeds, instead of dead-ending here with no way forward.
+    state.pendingVerify={uid,token};
+    state.verifyStatus='need-signin';
+    state.tab='signin';
+    render();
+    return;
+  }
+
   const key=uid+':'+token;
   if(_verifyingKey===key) return;
   _verifyingKey=key;
 
-  if(!uid||!token){state.verifyStatus='invalid';render();return}
-
-  // The write below only succeeds if you're signed in as this exact account
-  // (see the Firestore rule note) — clicking the link on a different device
-  // needs you signed in there first.
-  if(!auth.currentUser||auth.currentUser.uid!==uid){
-    state.verifyStatus='need-signin';render();return;
-  }
-
   state.verifyStatus='checking';render();
-  try{
-    const ref=db.collection('profiles').doc(uid);
-    const snap=await ref.get();
-    if(!snap.exists){state.verifyStatus='invalid';render();return}
-    const profile=snap.data();
-
-    if(profile.verified===true){
-      // Already verified — e.g. the link was clicked twice. Just finish
-      // signing them in rather than calling it invalid.
-      state.verifyStatus='success';render();
-      await afterAuthSuccess({showLangPrompt:true});
-      return;
-    }
-
-    const hash=await sha256Hex(token);
-    if(!profile.verificationHash||profile.verificationHash!==hash){
-      state.verifyStatus='invalid';render();return;
-    }
-
-    await ref.update({verified:true,verificationHash:FieldValue.delete()});
+  const outcome=await attemptVerifyToken(uid,token);
+  if(outcome==='success'){
     state.verifyStatus='success';render();
     await afterAuthSuccess({showLangPrompt:true});
-  }catch(error){
-    console.error(error);
+  }else{
     state.verifyStatus='invalid';render();
   }
 }
