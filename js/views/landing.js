@@ -141,7 +141,12 @@ async function handleResendVerification(btn){
     auth.currentUser.sendEmailVerification(actionCodeSettings).catch(()=>{});
     toast(t('toast.verification_email_sent'));
   }catch(error){
-    toast(t('toast.could_not_send_verification',{error:error.message}));
+    // EmailJS rejects with {status, text}, not a normal Error with
+    // .message — this could also be a Firestore error from the .update()
+    // call above, which does use .message, so check both shapes.
+    const reason=error.text||error.message||String(error);
+    toast(t('toast.could_not_send_verification',{error:reason}));
+    console.error(error);
   }
   btn.disabled=false;
 }
