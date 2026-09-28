@@ -25,6 +25,7 @@ function render(){
   if(hash==='#/'||hash===''||hash==='#'){body=renderLanding()}
   else if(hash==='#/about'){body=renderAbout()}
   else if(hash==='#/contact'){body=renderContact()}
+  else if(hash==='#/guide'){body=renderGuide()}
   else if(hash.startsWith('#/verify')){body=renderVerify()}
   else if(!user){body='<main class="mx-auto w-full max-w-2xl px-4 py-24 text-center"><h1 class="font-display text-3xl">'+t('guest.title')+'</h1><p class="mt-2 text-muted-foreground">'+t('guest.body')+'</p><div class="mt-6 flex flex-wrap justify-center gap-2"><a href="#/" class="btn btn-primary">'+t('guest.back_to_signin')+'</a><a href="#/about" class="btn btn-outline">'+t('header.nav_about')+'</a><a href="#/contact" class="btn btn-outline">'+t('header.nav_contact')+'</a></div></main>'}
   else if(hash==='#/dashboard'){body=renderDashboard()}
