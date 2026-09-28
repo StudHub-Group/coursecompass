@@ -30,7 +30,7 @@ function renderSettings(){
       '</div></section>'+
 
     '<section class="mt-6 rounded-2xl border border-border bg-card p-6"><h2 class="font-display text-xl">'+t('settings.privacy_heading')+'</h2><div class="mt-4 space-y-3">'+settingRow(t('settings.anon_default_title'),t('settings.anon_default_desc'),'anonDefault',user.prefs.anonDefault)+settingRow(t('settings.public_profile_title'),t('settings.public_profile_desc'),'publicProfile',user.prefs.publicProfile)+'</div></section>'+
-    '<section class="mt-6 rounded-2xl border border-border bg-card p-6"><h2 class="font-display text-xl">'+t('settings.help_heading')+'</h2><p class="mt-1 text-sm text-muted-foreground">'+t('settings.help_body')+'</p><div class="mt-4 flex flex-wrap gap-2"><a href="#/contact" class="btn btn-outline btn-sm">'+ICONS.mail+' '+t('settings.contact_feedback')+'</a><a href="#/about" class="btn btn-ghost btn-sm">'+ICONS.info+' '+t('settings.about_link')+'</a></div></section></main>';
+    '<section class="mt-6 rounded-2xl border border-border bg-card p-6"><h2 class="font-display text-xl">'+t('settings.help_heading')+'</h2><p class="mt-1 text-sm text-muted-foreground">'+t('settings.help_body')+'</p><div class="mt-4 flex flex-wrap gap-2"><a href="#/guide" class="btn btn-outline btn-sm">'+ICONS.book+' '+t('header.nav_guide')+'</a><a href="#/contact" class="btn btn-outline btn-sm">'+ICONS.mail+' '+t('settings.contact_feedback')+'</a><a href="#/about" class="btn btn-ghost btn-sm">'+ICONS.info+' '+t('settings.about_link')+'</a></div></section></main>';
 }
 
 function bindSettings(){
