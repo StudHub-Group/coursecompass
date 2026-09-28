@@ -7,11 +7,15 @@
 // and set that step's `img` to its filename — leaving img null keeps the
 // placeholder frame so the layout still looks right in the meantime.
 const GUIDE_STEPS=[
-  {title:'Creating your account',body:'Placeholder text — explain signing up with a university email, matching or adding a university, and the pending-approval note.',img:null},
-  {title:'Finding your courses',body:'Placeholder text — explain the course directory: faculties, search, and the filter/sort controls.',img:null},
-  {title:'Reading a course page',body:'Placeholder text — explain the overall rating and the difficulty / workload / professor scores, plus reading past reviews.',img:null},
-  {title:'Writing a review',body:'Placeholder text — explain rating a course, writing the review, and the anonymous-by-default option.',img:null},
-  {title:'Managing your profile and settings',body:'Placeholder text — explain editing or deleting your own reviews, and changing the interface language.',img:null}
+  {title:'Creating your account',body:'Enter your full name and your university email address. Your email is automatically matched to your university where possible. Choose a password and make sure to remember it — there\u2019s currently no password recovery option.',img:null},
+  {title:'Matching or adding your university',body:'Based on your email, you\u2019re automatically assigned to a university. If that\u2019s the wrong one, you can pick your actual university instead. If your university isn\u2019t listed yet, you can add it: select where it\u2019s located, then enter its name. If it\u2019s in a non-English-speaking country, you\u2019ll also need to provide the official name and its English equivalent. Enter the university\u2019s abbreviation, then select the languages classes are taught in \u2014 you\u2019ll see suggestions based on the country you chose \u2014 and the terms your university offers courses in.',img:null},
+  {title:'Verifying your email',body:'After signing up, a verification email is sent to your address. Once you\u2019ve confirmed it, you\u2019re ready to sign in.',img:null},
+  {title:'Choosing your interface language',body:'The first time you sign in, you can choose your interface language. You can always change it again later from the Settings tab.',img:null},
+  {title:'Adding faculties and courses',body:'On the Courses tab, you can create a faculty by entering its name \u2014 a description is optional. Once a faculty exists, you can add a course to it: assign it to a faculty, then enter the course code, number of credits, title, professor, the term it\u2019s offered in, its level, and an optional short description. Once a course is created, people can start writing reviews for it.',img:null},
+  {title:'Finding your courses',body:'Placeholder text \u2014 explain the course directory: browsing by faculty, searching, and the filter/sort controls.',img:null},
+  {title:'Reading a course page',body:'Placeholder text \u2014 explain the overall rating and the difficulty / workload / professor scores, plus reading past reviews.',img:null},
+  {title:'Writing a review',body:'Placeholder text \u2014 explain rating a course, writing the review, and the anonymous-by-default option.',img:null},
+  {title:'Managing your profile and settings',body:'Placeholder text \u2014 explain editing your profile info (program, year, faculty), the anonymous-by-default and public-profile toggles, and editing or deleting your own reviews.',img:null}
 ];
 
 function guideScreenshot(step){
