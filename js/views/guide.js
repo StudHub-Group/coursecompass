@@ -7,7 +7,7 @@
 // and set that step's `img` to its filename — leaving img null keeps the
 // placeholder frame so the layout still looks right in the meantime.
 const GUIDE_STEPS=[
-  {title:'Creating your account',body:'Enter your full name and your university email address. Your email is automatically matched to your university where possible. Choose a password and make sure to remember it — there\u2019s currently no password recovery option.',img:null},
+  {title:'Creating your account',body:'Enter your full name and your university email address. Your email is automatically matched to your university where possible. Choose a password and make sure to remember it — there\u2019s currently no password recovery option.',img:'2'},
   {title:'Matching or adding your university',body:'Based on your email, you\u2019re automatically assigned to a university. If that\u2019s the wrong one, you can pick your actual university instead. If your university isn\u2019t listed yet, you can add it: select where it\u2019s located, then enter its name. If it\u2019s in a non-English-speaking country, you\u2019ll also need to provide the official name and its English equivalent. Enter the university\u2019s abbreviation, then select the languages classes are taught in \u2014 you\u2019ll see suggestions based on the country you chose \u2014 and the terms your university offers courses in.',img:null},
   {title:'Verifying your email',body:'After signing up, a verification email is sent to your address. Once you\u2019ve confirmed it, you\u2019re ready to sign in.',img:null},
   {title:'Choosing your interface language',body:'The first time you sign in, you can choose your interface language. You can always change it again later from the Settings tab.',img:null},
