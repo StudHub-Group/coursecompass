@@ -40,6 +40,7 @@ function render(){
   if(fab){fab.title=t('feedback.title');const fabText=$('#feedback-fab-text');if(fabText)fabText.textContent=t('feedback.fab_label')}
   if(hash==='#/'||hash===''||hash==='#') bindLanding();
   else if(hash==='#/contact') bindContact();
+  else if(hash==='#/guide') bindGuide();
   else if(hash.startsWith('#/verify')) bindVerify();
   else if(hash==='#/dashboard') bindDashboard();
   else if(hash.startsWith('#/courses/')) bindCourse();
