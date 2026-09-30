@@ -23,15 +23,20 @@ async function handleSignupAdvance(){
   if(state.tab==='signup'&&password!==password2) return fail(t('toast.passwords_no_match'));
   state.signup.name=name;state.signup.email=email;state.signup.domain=domainOf(email);state.signup.password=password;
 
+  if(state.tab==='signin'){
+    // No domain pre-check here — Firebase Auth is the source of truth for
+    // whether this account exists. afterAuthSuccess() routes them correctly
+    // afterward based on their actual profile document (a specific
+    // university, or the admin index), not their email's domain.
+    setAuthBusy(true);
+    await finishSignup(null,{});
+    setAuthBusy(false);
+    return;
+  }
+
   setAuthBusy(true);
   const found=await findUniversityByDomain(email);
   setAuthBusy(false);
-
-  if(state.tab==='signin'){
-    if(!found) return fail(t('toast.no_university_for_domain',{domain:'@'+state.signup.domain}));
-    await finishSignup(found.id,{nameOverride:nameFromEmail(email)});
-    return;
-  }
   if(found){state.signup.matched={key:found.id,name:found.name,code:found.abbreviation||'',status:found.status};state.signup.step='confirm'}
   else {state.signup.matched=null;state.signup.step='pick'}
   render();
