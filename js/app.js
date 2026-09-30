@@ -20,15 +20,16 @@ function render(){
   const app=$('#app');
   const hash=state.route;
   const signedIn=!!user;
-  if((hash==='#/'||hash===''||hash==='#')&&user){location.hash='#/dashboard';return}
+  if((hash==='#/'||hash===''||hash==='#')&&user){location.hash=user.isAdmin?'#/admin':'#/dashboard';return}
   let body='';
   if(hash==='#/'||hash===''||hash==='#'){body=renderLanding()}
   else if(hash==='#/about'){body=renderAbout()}
   else if(hash==='#/contact'){body=renderContact()}
   else if(hash==='#/guide'){body=renderGuide()}
   else if(hash.startsWith('#/verify')){body=renderVerify()}
+  else if(hash==='#/admin'){body=user&&user.isAdmin?renderAdmin():'<main class="mx-auto w-full max-w-2xl px-4 py-24 text-center"><h1 class="font-display text-3xl">'+t('guest.title')+'</h1><p class="mt-2 text-muted-foreground">'+t('guest.body')+'</p><div class="mt-6 flex flex-wrap justify-center gap-2"><a href="#/" class="btn btn-primary">'+t('guest.back_to_signin')+'</a></div></main>'}
   else if(!user){body='<main class="mx-auto w-full max-w-2xl px-4 py-24 text-center"><h1 class="font-display text-3xl">'+t('guest.title')+'</h1><p class="mt-2 text-muted-foreground">'+t('guest.body')+'</p><div class="mt-6 flex flex-wrap justify-center gap-2"><a href="#/" class="btn btn-primary">'+t('guest.back_to_signin')+'</a><a href="#/about" class="btn btn-outline">'+t('header.nav_about')+'</a><a href="#/contact" class="btn btn-outline">'+t('header.nav_contact')+'</a></div></main>'}
-  else if(hash==='#/dashboard'){body=renderDashboard()}
+  else if(hash==='#/dashboard'){body=(user.isAdmin&&!user.inst)?renderAdmin():renderDashboard()}
   else if(hash.startsWith('#/courses/')){body=renderCourse(hash.replace('#/courses/','').split('?')[0])}
   else if(hash==='#/profile'){body=renderProfile()}
   else if(hash==='#/settings'){body=renderSettings()}
@@ -42,7 +43,8 @@ function render(){
   else if(hash==='#/contact') bindContact();
   else if(hash==='#/guide') bindGuide();
   else if(hash.startsWith('#/verify')) bindVerify();
-  else if(hash==='#/dashboard') bindDashboard();
+  else if(hash==='#/admin'){if(user&&user.isAdmin)bindAdmin()}
+  else if(hash==='#/dashboard'){if(user.isAdmin&&!user.inst)bindAdmin();else bindDashboard()}
   else if(hash.startsWith('#/courses/')) bindCourse();
   else if(hash==='#/profile') bindProfile();
   else if(hash==='#/settings') bindSettings();
