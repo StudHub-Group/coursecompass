@@ -118,6 +118,25 @@ async function afterAuthSuccess(opts){
   }
   if(!profileSnap.exists){toast(t('toast.could_not_load_profile'));return}
   const profile=profileData;
+
+  if(profile.role==='admin'){
+    user={
+      id:authUser.uid,
+      name:profile.full_name||nameFromEmail(authUser.email),
+      email:authUser.email,
+      isAdmin:true,
+      inst:null,
+      program:'',year:'',faculty:'',
+      interfaceLang:profile.interface_lang||'',
+      prefs:{anonDefault:false,publicProfile:false}
+    };
+    await ensureLangLoaded(LANG_CODES[user.interfaceLang]);
+    applyDocDir();
+    location.hash='#/admin';
+    render();
+    return;
+  }
+
   if(!profile.university_id){toast(t('toast.could_not_link_university'));return}
   await loadUniversity(profile.university_id);
   user={
