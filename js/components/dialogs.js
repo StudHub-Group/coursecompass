@@ -246,6 +246,7 @@ function bindDialogBody(){
 }
 
 function openReviewDialog(courseId){
+  if(user.isAdmin){toast(t('toast.admin_cannot_review'));return}
   const mineCount=inst().reviews.filter(r=>r.courseId===courseId&&r.authorId===user.id).length;
   if(mineCount>=3){toast(t('toast.max_reviews_reached'));return}
   openDialog({type:'review',courseId:courseId,ratings:{overall:0,difficulty:0,workload:0,professor:0},season:'Fall',year:String(new Date().getFullYear()),text:'',anon:user.prefs.anonDefault,hint:mineCount>0?t('review.already_reviewed_hint',{n:mineCount+1}):null});
