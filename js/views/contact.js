@@ -17,7 +17,7 @@ function renderContact(){
       '<div class="grid gap-4 sm:grid-cols-2"><div class="space-y-1.5"><label class="text-sm font-medium" for="cf-name">'+t('contact.name_label')+' <span class="text-muted-foreground">'+t('contact.optional')+'</span></label><input class="input" id="cf-name" placeholder="Alex Weber" value="'+esc(user?user.name:'')+'"></div><div class="space-y-1.5"><label class="text-sm font-medium" for="cf-email">'+t('contact.email_label')+' <span class="text-muted-foreground">'+t('contact.optional')+'</span></label><input class="input" id="cf-email" type="email" placeholder="you@example.com" value="'+esc(user?user.email:'')+'"></div></div>'+
       '<div class="space-y-1.5"><label class="text-sm font-medium" for="cf-subject">'+t('contact.subject_label')+'</label><input class="input" id="cf-subject" placeholder="'+t('contact.subject_placeholder')+'" value="'+esc(pref.subject)+'"></div>'+
       '<div class="space-y-1.5"><label class="text-sm font-medium" for="cf-body">'+t('contact.message_label')+'</label><textarea class="input" id="cf-body" rows="7" placeholder="'+t('contact.message_placeholder')+'">'+esc(pref.body)+'</textarea></div>'+
-      '<label class="flex items-start gap-2 text-xs text-muted-foreground"><input type="checkbox" id="cf-cc" class="mt-0.5 h-3.5 w-3.5 rounded border-input"><span>'+t('contact.cc_me')+'</span></label>'+
+      '<p class="text-xs text-muted-foreground">'+t('contact.reply_note')+'</p>'+
       '<p class="hidden text-sm text-red-600" id="cf-error"></p>'+
       '<div class="flex flex-wrap gap-2"><button type="submit" class="btn btn-primary">'+ICONS.mail+' '+t('contact.submit')+'</button><button type="submit" class="btn btn-outline" data-action="save-only">'+t('contact.save_draft')+'</button></div>'+
       '<p class="text-xs text-muted-foreground">'+t('contact.mailto_note',{email:'<span class="font-mono">'+esc(CONTACT_KINDS[kind].to)+'</span>'})+'</p></form>'+
@@ -28,25 +28,36 @@ function bindContact(){
   $$('[data-kind]').forEach(b=>b.addEventListener('click',()=>{state.contactKind=b.dataset.kind;render()}));
   const form=$('#contact-form');if(!form) return;
   const err=$('#cf-error');const fail=m=>{err.textContent=m;err.classList.remove('hidden')};
-  form.addEventListener('submit',e=>{
+  form.addEventListener('submit',async e=>{
     e.preventDefault();
     const kind=state.contactKind;
-    const name=$('#cf-name').value.trim(),email=$('#cf-email').value.trim(),subject=$('#cf-subject').value.trim(),body=$('#cf-body').value.trim(),cc=$('#cf-cc').checked;
+    const name=$('#cf-name').value.trim(),email=$('#cf-email').value.trim(),subject=$('#cf-subject').value.trim(),body=$('#cf-body').value.trim();
     err.classList.add('hidden');
     if(!subject) return fail(t('toast.add_subject_short'));
     if(!body||body.length<10) return fail(t('toast.describe_few_words'));
     if(email && !isValidEmail(email)) return fail(t('toast.reply_email_invalid'));
     const saveOnly=e.submitter && e.submitter.dataset.action==='save-only';
-    messages.push({id:'m'+Date.now(),kind:kind,name:name,email:email,subject:subject,body:body,to:CONTACT_KINDS[kind].to,sentAt:new Date().toLocaleString('en-US',{dateStyle:'medium',timeStyle:'short'}),status:'saved'});
+    const msg={id:'m'+Date.now(),kind:kind,name:name,email:email,subject:subject,body:body,to:CONTACT_KINDS[kind].to,sentAt:new Date().toLocaleString('en-US',{dateStyle:'medium',timeStyle:'short'}),status:saveOnly?'saved':'sending'};
+    messages.push(msg);
     persistMsgs();
     if(saveOnly){toast(t('toast.saved_locally'));state.contactPrefill={subject:'',body:''};render();return}
-    const sEnc=encodeURIComponent('['+contactKindLabel(kind)+'] '+subject);
-    const bEnc=encodeURIComponent([body,'','—',name?'From: '+name:null,email?'Reply-to: '+email:null,'Page: '+location.href].filter(Boolean).join('\n'));
-    const ccParam=cc&&email?'&cc='+encodeURIComponent(email):'';
-    window.location.href='mailto:'+CONTACT_KINDS[kind].to+'?subject='+sEnc+'&body='+bEnc+ccParam;
-    toast(t('toast.saved_opening_mail'));
+    const submitBtn=e.submitter||form.querySelector('button[type="submit"]');
+    if(submitBtn) submitBtn.disabled=true;
+    try{
+      await sendContactEmail({
+        toEmail:CONTACT_KINDS[kind].to,fromName:name,fromEmail:email,
+        kindLabel:contactKindLabel(kind),subject:subject,body:body
+      });
+      msg.status='sent';
+      toast(t('toast.message_sent'));
+    }catch(error){
+      msg.status='failed';
+      toast(t('toast.could_not_send_message',{error:error.text||error.message||String(error)}));
+    }
+    persistMsgs();
+    if(submitBtn) submitBtn.disabled=false;
     state.contactPrefill={subject:'',body:''};
-    setTimeout(render,400);
+    render();
   });
   const clear=$('[data-action="clear-messages"]');
   if(clear) clear.addEventListener('click',()=>{if(!confirm(t('contact.clear_confirm'))) return;messages=[];persistMsgs();toast(t('toast.message_history_cleared'));render()});
