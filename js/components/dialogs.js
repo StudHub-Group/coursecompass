@@ -28,6 +28,60 @@ function bindDialogOverlay(){
   if(!bindDialogOverlay._bound){bindDialogOverlay._bound=true;document.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.dialog)closeDialog()})}
 }
 
+// Courses with the same code are compared across the fields that actually
+// identify "the same course": title, professor, credits, level, terms and
+// faculty. 0 differences = an exact duplicate (blocked). 1-2 differences =
+// probably the same course with something genuinely different about it —
+// most often the professor, since reviews vary a lot by who's teaching —
+// so it's only a hint, not a block. 3+ means they're different enough that
+// sharing a code is most likely a coincidence or a reused/cross-listed code.
+function courseDuplicateMatch(input){
+  const codeNorm=input.code.trim().toLowerCase();
+  const sameCode=inst().courses.filter(c=>c.code.trim().toLowerCase()===codeNorm);
+  if(!sameCode.length) return {exact:false,near:null};
+  const normTerms=arr=>(arr||[]).slice().sort().join(',');
+  let best=null,bestDiff=99;
+  for(const c of sameCode){
+    let diff=0;
+    if((c.title||'').trim().toLowerCase()!==input.title.trim().toLowerCase()) diff++;
+    if((c.prof||'').trim().toLowerCase()!==input.prof.trim().toLowerCase()) diff++;
+    if((c.credits||0)!==input.credits) diff++;
+    if((c.level||'')!==input.level) diff++;
+    if(normTerms(c.terms)!==normTerms(input.terms)) diff++;
+    if((c.faculty||'')!==input.facultyId) diff++;
+    if(diff<bestDiff){bestDiff=diff;best=c}
+  }
+  if(bestDiff===0) return {exact:true,near:best};
+  if(bestDiff<=2) return {exact:false,near:best};
+  return {exact:false,near:null};
+}
+
+function refreshCourseDupHint(){
+  const hint=$('#c-dup-hint');
+  if(!hint) return;
+  const codeEl=$('#c-code');
+  const code=codeEl?codeEl.value.trim():'';
+  if(!code){hint.textContent='';hint.className='text-xs text-amber-700';return}
+  const match=courseDuplicateMatch({
+    code:code,
+    title:$('#c-title')?$('#c-title').value.trim():'',
+    prof:$('#c-prof')?$('#c-prof').value.trim():'',
+    credits:parseInt($('#c-credits')?$('#c-credits').value:'',10)||0,
+    level:$('#c-level')?$('#c-level').value:'',
+    terms:state.dialog.terms,
+    facultyId:$('#c-faculty')?$('#c-faculty').value:''
+  });
+  if(match.exact){
+    hint.className='text-xs text-red-600';
+    hint.textContent=t('courseDialog.exact_duplicate_hint',{code:match.near.code,title:match.near.title,prof:match.near.prof||'TBA'});
+  }else if(match.near){
+    hint.className='text-xs text-amber-700';
+    hint.textContent=t('courseDialog.similar_course_hint',{code:match.near.code,title:match.near.title,prof:match.near.prof||'TBA'});
+  }else{
+    hint.textContent='';
+  }
+}
+
 function starPickerRow(name,label){
   const v=(state.dialog && state.dialog.ratings[name])||0;
   const buttons=[1,2,3,4,5].map(i=>'<button type="button" class="p-0.5 transition-transform hover:scale-110" data-star="'+i+'" data-pick="'+name+'" aria-label="'+label+': '+i+'">'+starSvg(20,i<=v?'fill-accent text-accent':'text-muted-foreground/40')+'</button>').join('');
@@ -174,25 +228,13 @@ function bindDialogBody(){
       const i=d.terms.indexOf(tm);
       if(i>=0) d.terms.splice(i,1); else d.terms.push(tm);
       chip.dataset.active=d.terms.includes(tm)?'1':'0';
+      refreshCourseDupHint();
     }));
-    const titleInput=$('#c-title');
-    if(titleInput){
-      let debounceTimer=null;
-      titleInput.addEventListener('input',()=>{
-        clearTimeout(debounceTimer);
-        const val=titleInput.value.trim();
-        const hint=$('#c-dup-hint'); if(hint) hint.textContent='';
-        if(val.length<3) return;
-        // Courses for this university are already cached from loadUniversity(),
-        // so this is a local lookup — no round trip needed, unlike the
-        // Postgres RPC this replaces.
-        debounceTimer=setTimeout(()=>{
-          const match=findSimilar(inst().courses,val,'title');
-          const h=$('#c-dup-hint');
-          if(h) h.textContent=match?t('courseDialog.similar_hint',{code:match.code,title:match.title}):'';
-        },350);
-      });
-    }
+    let dupDebounce=null;
+    const watch=id=>{const el=$(id);if(el)el.addEventListener('input',()=>{clearTimeout(dupDebounce);dupDebounce=setTimeout(refreshCourseDupHint,350)})};
+    const watchNow=id=>{const el=$(id);if(el)el.addEventListener('change',refreshCourseDupHint)};
+    watch('#c-code');watch('#c-title');watch('#c-prof');watch('#c-credits');
+    watchNow('#c-faculty');watchNow('#c-level');
     const go=$('[data-action="create-course"]');
     if(go)go.addEventListener('click',async ()=>{
       const code=$('#c-code').value.trim(),title=$('#c-title').value.trim(),prof=$('#c-prof').value.trim(),credits=parseInt($('#c-credits').value,10)||0,facultyId=$('#c-faculty').value,terms=d.terms.slice(),level=$('#c-level').value,desc=$('#c-desc').value.trim();
@@ -200,9 +242,13 @@ function bindDialogBody(){
       if(!title){toast(t('toast.course_title_required'));return}
       if(!facultyId){toast(t('toast.add_faculty_first'));return}
       if(!terms.length){toast(t('toast.select_one_course_term'));return}
-      // Firestore has no unique constraint like the Postgres schema did, so
-      // duplicate course codes are checked client-side before writing.
-      if(inst().courses.some(c=>c.code.trim().toLowerCase()===code.toLowerCase())){toast(t('toast.course_code_exists',{code:code}));return}
+      // Block only a true one-to-one copy (same code, title, professor,
+      // credits, level, terms and faculty). Same code with a different
+      // professor (or any 1-2 other differences) is allowed through — the
+      // hint above already flagged it, but reviews genuinely vary a lot by
+      // professor, so that's treated as a legitimately separate course.
+      const dup=courseDuplicateMatch({code,title,prof,credits,level,terms,facultyId});
+      if(dup.exact){toast(t('toast.course_exact_duplicate',{code:dup.near.code}));return}
       go.disabled=true;
       try{
         await db.collection('courses').add({
@@ -222,18 +268,30 @@ function bindDialogBody(){
   if(d.type==='feedback'){
     const kind=$('#fb-kind');if(kind)kind.addEventListener('change',e=>{d.kind=e.target.value});
     const send=$('[data-action="send-feedback"]');
-    if(send)send.addEventListener('click',()=>{
+    if(send)send.addEventListener('click',async ()=>{
       const subject=$('#fb-subject').value.trim(),body=$('#fb-body').value.trim(),email=$('#fb-email').value.trim();
       const k=d.kind in CONTACT_KINDS?d.kind:'bug';
       if(!subject){toast(t('toast.add_subject'));return}
       if(!body||body.length<10){toast(t('toast.describe_few_words'));return}
       if(email && !isValidEmail(email)){toast(t('toast.reply_email_invalid'));return}
-      messages.push({id:'m'+Date.now(),kind:k,name:user?user.name:'',email:email,subject:subject,body:body,to:CONTACT_KINDS[k].to,sentAt:new Date().toLocaleString('en-US',{dateStyle:'medium',timeStyle:'short'}),status:'saved'});
+      const msg={id:'m'+Date.now(),kind:k,name:user?user.name:'',email:email,subject:subject,body:body,to:CONTACT_KINDS[k].to,sentAt:new Date().toLocaleString('en-US',{dateStyle:'medium',timeStyle:'short'}),status:'sending'};
+      messages.push(msg);
       persistMsgs();
-      const sEnc=encodeURIComponent('['+contactKindLabel(k)+'] '+subject);
-      const bEnc=encodeURIComponent(body+'\n\n—\n'+(email?'Reply-to: '+email+'\n':'')+'Page: '+location.href);
-      window.location.href='mailto:'+CONTACT_KINDS[k].to+'?subject='+sEnc+'&body='+bEnc;
-      closeDialog();toast(t('toast.saved_opening_mail'));
+      send.disabled=true;
+      try{
+        await sendContactEmail({
+          toEmail:CONTACT_KINDS[k].to,fromName:user?user.name:'',fromEmail:email,
+          kindLabel:contactKindLabel(k),subject:subject,body:body
+        });
+        msg.status='sent';
+        closeDialog();
+        toast(t('toast.message_sent'));
+      }catch(error){
+        msg.status='failed';
+        send.disabled=false;
+        toast(t('toast.could_not_send_message',{error:error.text||error.message||String(error)}));
+      }
+      persistMsgs();
     });
     const openFull=$('[data-action="open-contact-full"]');
     if(openFull)openFull.addEventListener('click',()=>{
