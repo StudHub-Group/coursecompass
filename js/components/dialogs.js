@@ -92,7 +92,10 @@ function reviewDialogHtml(course){
   const d=state.dialog;
   const editing=!!d.reviewId;
   const currentYear=new Date().getFullYear();
-  const seasonOptions=SEASONS.map(s=>'<option value="'+s+'"'+(d.season===s?' selected':'')+'>'+enumLabel('season',s)+'</option>').join('');
+  // Same fallback as the course-term chips below: universities created
+  // before the terms field existed fall back to the full list.
+  const availableSeasons=(inst().terms&&inst().terms.length)?inst().terms:SEASONS;
+  const seasonOptions=availableSeasons.map(s=>'<option value="'+s+'"'+(d.season===s?' selected':'')+'>'+enumLabel('season',s)+'</option>').join('');
   return '<div class="flex flex-col space-y-1.5 text-center sm:text-left"><h2 class="font-display text-xl font-semibold tracking-tight">'+(editing?t('review.title_edit'):t('review.title_new',{code:esc(course.code)}))+'</h2><p class="text-sm text-muted-foreground">'+esc(course.title)+' · '+esc(course.prof)+'</p>'+(d.hint?'<p class="text-xs text-amber-700">'+esc(d.hint)+'</p>':'')+'</div>'+
     '<div class="mt-4 space-y-3">'+starPickerRow('overall',t('review.rating_overall'))+starPickerRow('difficulty',t('review.rating_difficulty'))+starPickerRow('workload',t('review.rating_workload'))+starPickerRow('professor',t('review.rating_professor'))+
       '<div class="grid grid-cols-2 gap-3"><div class="space-y-1.5"><label class="text-sm font-medium">'+t('review.season_label')+'</label><div class="relative"><select class="select" id="rv-season">'+seasonOptions+'</select><span class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2">'+CHEVRON+'</span></div></div><div class="space-y-1.5"><label class="text-sm font-medium" for="rv-year">'+t('review.year_label')+'</label><input class="input" id="rv-year" type="number" min="1990" max="2100" step="1" value="'+esc(d.year||String(currentYear))+'"></div></div>'+
@@ -303,13 +306,14 @@ function bindDialogBody(){
   }
 }
 
+function defaultSeason(){const terms=inst().terms;return(terms&&terms.length)?terms[0]:SEASONS[0]}
 function openReviewDialog(courseId){
   if(user.isAdmin){toast(t('toast.admin_cannot_review'));return}
   const mineCount=inst().reviews.filter(r=>r.courseId===courseId&&r.authorId===user.id).length;
   if(mineCount>=3){toast(t('toast.max_reviews_reached'));return}
-  openDialog({type:'review',courseId:courseId,ratings:{overall:0,difficulty:0,workload:0,professor:0},season:'Fall',year:String(new Date().getFullYear()),text:'',anon:user.prefs.anonDefault,hint:mineCount>0?t('review.already_reviewed_hint',{n:mineCount+1}):null});
+  openDialog({type:'review',courseId:courseId,ratings:{overall:0,difficulty:0,workload:0,professor:0},season:defaultSeason(),year:String(new Date().getFullYear()),text:'',anon:user.prefs.anonDefault,hint:mineCount>0?t('review.already_reviewed_hint',{n:mineCount+1}):null});
 }
-function openEditReviewDialog(reviewId){const r=inst().reviews.find(x=>x.id===reviewId);if(!r){toast(t('toast.review_not_found'));return}openDialog({type:'review',courseId:r.courseId,reviewId:r.id,ratings:{overall:r.overall,difficulty:r.difficulty,workload:r.workload,professor:r.professor},season:r.season||'Fall',year:r.year||String(new Date().getFullYear()),text:r.text,anon:!r.author})}
+function openEditReviewDialog(reviewId){const r=inst().reviews.find(x=>x.id===reviewId);if(!r){toast(t('toast.review_not_found'));return}openDialog({type:'review',courseId:r.courseId,reviewId:r.id,ratings:{overall:r.overall,difficulty:r.difficulty,workload:r.workload,professor:r.professor},season:r.season||defaultSeason(),year:r.year||String(new Date().getFullYear()),text:r.text,anon:!r.author})}
 function openFacultyDialog(){openDialog({type:'faculty'})}
 function openCourseDialog(){openDialog({type:'course',terms:[]})}
 function openFeedbackDialog(opts){opts=opts||{};openDialog({type:'feedback',kind:opts.kind||'bug',subject:opts.subject||'',body:opts.body||''})}
