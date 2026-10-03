@@ -55,19 +55,19 @@ function bindSettings(){
   const save=$('[data-action="save-profile"]');
   if(save) save.addEventListener('click',async ()=>{
     const name=$('#s-name').value.trim();if(!name){toast(t('toast.display_name_empty'));return}
+    const faculty=$('#s-faculty').value||'';
+    const program=$('#s-program').value.trim()||'Undeclared';
+    const year=$('#s-year').value.trim()||'—';
     save.disabled=true;
     try{
-      await db.collection('profiles').doc(user.id).update({full_name:name});
+      await db.collection('profiles').doc(user.id).update({full_name:name,faculty:faculty,program:program,year:year});
     }catch(error){
       save.disabled=false;
       toast(t('toast.could_not_save',{error:error.message}));
       return;
     }
     save.disabled=false;
-    user.name=name;
-    // Not yet part of the schema — kept for this session only, so they display
-    // correctly right now but won't survive a page reload.
-    user.faculty=$('#s-faculty').value||'';user.program=$('#s-program').value.trim()||'Undeclared';user.year=$('#s-year').value.trim()||'—';
+    user.name=name;user.faculty=faculty;user.program=program;user.year=year;
     toast(t('toast.settings_saved'));render();
   });
   $$('[data-switch]').forEach(btn=>btn.addEventListener('click',async ()=>{
