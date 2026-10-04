@@ -6,7 +6,7 @@ function renderLanding(){
   return '<main class="mx-auto grid w-full max-w-6xl gap-14 px-4 py-16 lg:grid-cols-[1.1fr_0.9fr] lg:py-24">'+
     '<section><h1 class="mt-6 font-display text-5xl leading-[1.05] tracking-tight md:text-6xl">'+t('landing.headline')+'</h1>'+
     '<p class="mt-5 max-w-xl text-lg text-muted-foreground">'+t('landing.subhead')+'</p>'+
-    '<dl class="mt-10 grid gap-6 sm:grid-cols-3">'+stat(ICONS.cap,globalStats.universities,t('landing.stat_universities'))+stat(ICONS.book,globalStats.courses,t('landing.stat_courses'))+stat(ICONS.shield,globalStats.reviews,t('landing.stat_reviews'))+'</dl>'+
+    '<dl class="mt-10 grid gap-6 sm:grid-cols-3">'+stat(ICONS.cap,globalStats.universities,t('landing.stat_universities'))+stat(ICONS.book,globalStats.courses,t('landing.stat_courses'))+stat(ICONS.shield,globalStats.students,t('landing.stat_reviews'))+'</dl>'+
     '<div class="mt-8 flex items-center gap-3 text-xs text-muted-foreground"><span>'+t('landing.built_by')+'</span>'+studhubLogo(20)+'</div></section>'+
     '<section class="lg:pt-10"><div class="rounded-2xl border border-border bg-card p-6 shadow-sm">'+renderAuthCard()+'</div></section></main>';
 }
@@ -81,7 +81,8 @@ async function finishSignup(instKey,opts){
     if(!universityId&&opts.newUniversity){
       const uniData=Object.assign({
         status:'pending',tagline:'',local_name:null,created_by:uid,
-        created_at:FieldValue.serverTimestamp()
+        created_at:FieldValue.serverTimestamp(),
+        student_count:0,course_count:0,review_count:0
       },opts.newUniversity);
       const uniRef=await db.collection('universities').add(uniData);
       universityId=uniRef.id;
@@ -101,6 +102,9 @@ async function finishSignup(instKey,opts){
       interface_lang:'',anon_default:false,created_at:FieldValue.serverTimestamp(),
       verified:false,verificationHash:verificationHash
     });
+    // Best-effort — a failure here shouldn't undo a successful signup, it
+    // just means the landing-page stat undercounts by one.
+    db.collection('universities').doc(universityId).update({student_count:FieldValue.increment(1)}).catch(e=>console.error(e));
   }catch(error){
     showAuthError(error.message);
     // best-effort cleanup so a failed signup doesn't leave a stranded auth
