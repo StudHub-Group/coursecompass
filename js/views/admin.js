@@ -110,7 +110,8 @@ async function handleAdminCreateUniversity(){
     await db.collection('universities').add({
       name:name,local_name:localName||null,abbreviation:abbr.toUpperCase(),
       country:country,languages:languages,terms:terms,domains:domains,
-      status:'approved',tagline:'',created_by:user.id,created_at:FieldValue.serverTimestamp()
+      status:'approved',tagline:'',created_by:user.id,created_at:FieldValue.serverTimestamp(),
+      student_count:0,course_count:0,review_count:0
     });
   }catch(error){
     btn.disabled=false;
