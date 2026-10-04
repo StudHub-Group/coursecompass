@@ -37,29 +37,25 @@ async function loadUniversity(universityId){
 
 async function refreshGlobalStats(){
   try{
-    // Note: there's no admin-approval workflow in this app yet — every
-    // self-signup university is created with status:'pending' and nothing
-    // ever flips it to 'approved'. Counting only 'approved' universities
-    // would make this stat permanently stuck at 0, so we count all of them.
-    // Note: the compat (namespaced) Firestore API never picked up a chainable
-    // .count() method — only the modular getCountFromServer() supports server-
-    // side aggregation. Since this app deliberately stays on plain compat
-    // <script> tags with no bundler, we fetch the documents and use
-    // snapshot.size instead. That costs a read per document rather than one
-    // aggregation read, which is negligible at this app's scale.
-    const [uc,cc,rc]=await Promise.all([
-      db.collection('universities').get(),
-      db.collection('courses').get(),
-      db.collection('reviews').get()
-    ]);
-    globalStats={universities:uc.size||0,courses:cc.size||0,reviews:rc.size||0};
+    // courses and reviews require signedIn() to read directly, so this page
+    // (shown to signed-out visitors) can't query those collections itself —
+    // instead each university document carries its own public, write-once
+    // counter fields (student_count / course_count / review_count), bumped
+    // by signup / course creation / review creation respectively. Summing
+    // those across every university (universities IS publicly readable)
+    // gives accurate site-wide stats without exposing the private
+    // collections themselves. There's also no admin-approval workflow for
+    // universities, so this still counts all of them, not just 'approved'.
+    const snap=await db.collection('universities').get();
+    let courses=0,reviews=0,students=0;
+    snap.docs.forEach(doc=>{
+      const u=doc.data();
+      courses+=u.course_count||0;
+      reviews+=u.review_count||0;
+      students+=u.student_count||0;
+    });
+    globalStats={universities:snap.size||0,courses:courses,reviews:reviews,students:students};
   }catch(e){
-    // If these still read 0 after this fix, open the browser console on the
-    // sign-in page — this catch logs the real Firestore error (most likely
-    // a Security Rules issue: 'universities' is already readable while
-    // signed out for the university search during signup, but 'courses'
-    // and 'reviews' may not have a public read rule yet, since they're
-    // normally only ever read after sign-in via loadUniversity()).
     console.error(e);
   }
   if(state.route==='#/'||state.route===''||state.route==='#'||state.route==='#/about') render();
@@ -144,7 +140,7 @@ async function afterAuthSuccess(opts){
     name:profile.full_name||nameFromEmail(authUser.email),
     email:authUser.email,
     inst:profile.university_id,
-    program:'Undeclared',year:'2nd year',faculty:'',
+    program:profile.program||'Undeclared',year:profile.year||'2nd year',faculty:profile.faculty||'',
     interfaceLang:profile.interface_lang||'',
     prefs:{anonDefault:!!profile.anon_default,publicProfile:false}
   };
