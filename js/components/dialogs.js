@@ -180,6 +180,10 @@ function bindDialogBody(){
             overall:r.overall,difficulty:r.difficulty,workload:r.workload,professor:r.professor,season:season,year:yr,body:d.text.trim(),
             created_at:FieldValue.serverTimestamp()
           });
+          // Best-effort public stat — see refreshGlobalStats(). Deleting a
+          // review doesn't decrement this, so it's a floor, not an exact
+          // live count.
+          db.collection('universities').doc(user.inst).update({review_count:FieldValue.increment(1)}).catch(e=>console.error(e));
         }catch(error){
           toast(t('toast.could_not_publish_review',{error:error.message}));pub.disabled=false;pub.textContent=t('review.publish');return;
         }
@@ -259,6 +263,7 @@ function bindDialogBody(){
           professor:prof||'TBA',credits:credits,terms:terms,level:level,description:desc||null,created_by:user.id,
           created_at:FieldValue.serverTimestamp()
         });
+        db.collection('universities').doc(user.inst).update({course_count:FieldValue.increment(1)}).catch(e=>console.error(e));
       }catch(error){
         go.disabled=false;
         toast(t('toast.could_not_add_course',{error:error.message}));
