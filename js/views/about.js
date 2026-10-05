@@ -9,7 +9,7 @@ function renderAbout(){
     '<section class="mt-10 grid gap-4 sm:grid-cols-3"><div class="rounded-xl border border-border bg-card p-5"><p class="font-display text-3xl">'+globalStats.universities+'</p><p class="mt-1 text-xs uppercase tracking-wider text-muted-foreground">'+t('about.stat_universities')+'</p></div><div class="rounded-xl border border-border bg-card p-5"><p class="font-display text-3xl">'+globalStats.courses+'</p><p class="mt-1 text-xs uppercase tracking-wider text-muted-foreground">'+t('about.stat_courses')+'</p></div><div class="rounded-xl border border-border bg-card p-5"><p class="font-display text-3xl">'+globalStats.reviews+'</p><p class="mt-1 text-xs uppercase tracking-wider text-muted-foreground">'+t('about.stat_reviews')+'</p></div></section>'+
     '<section class="mt-12"><h2 class="font-display text-2xl">'+t('about.what_you_can_do')+'</h2><div class="mt-4 grid gap-4 sm:grid-cols-2">'+feature(ICONS.sliders,t('about.feature1_title'),t('about.feature1_body'))+feature(ICONS.shield,t('about.feature2_title'),t('about.feature2_body'))+feature(ICONS.pen,t('about.feature3_title'),t('about.feature3_body'))+feature(ICONS.bug,t('about.feature4_title'),t('about.feature4_body'))+'</div></section>'+
     '<section class="mt-12"><h2 class="font-display text-2xl">'+t('about.faq_heading')+'</h2><div class="mt-4 space-y-3">'+
-      faq(t('about.faq1_q'),t('about.faq1_a'))+
+      //faq(t('about.faq1_q'),t('about.faq1_a'))+
       faq(t('about.faq2_q'),t('about.faq2_a'))+
       faq(t('about.faq3_q'),t('about.faq3_a'))+
       faq(t('about.faq4_q'),t('about.faq4_a'))+
