@@ -6,8 +6,8 @@ function renderLanding(){
   return '<main class="mx-auto grid w-full max-w-6xl gap-14 px-4 py-16 lg:grid-cols-[1.1fr_0.9fr] lg:py-24">'+
     '<section><h1 class="mt-6 font-display text-5xl leading-[1.05] tracking-tight md:text-6xl">'+t('landing.headline')+'</h1>'+
     '<p class="mt-5 max-w-xl text-lg text-muted-foreground">'+t('landing.subhead')+'</p>'+
-    //'<dl class="mt-10 grid gap-6 sm:grid-cols-3">'+stat(ICONS.cap,globalStats.universities,t('landing.stat_universities'))+stat(ICONS.book,globalStats.courses,t('landing.stat_courses'))+stat(ICONS.shield,globalStats.students,t('landing.stat_reviews'))+'</dl>'+
-    '<div class="mt-8 flex items-center gap-3 text-xs text-muted-foreground"><span>'+t('landing.built_by')+'</span>'+studhubLogo(20)+'</div></section>'+
+    /*'<dl class="mt-10 grid gap-6 sm:grid-cols-3">'+stat(ICONS.cap,globalStats.universities,t('landing.stat_universities'))+stat(ICONS.book,globalStats.courses,t('landing.stat_courses'))+stat(ICONS.shield,globalStats.students,t('landing.stat_reviews'))+'</dl>'+
+    '<div class="mt-8 flex items-center gap-3 text-xs text-muted-foreground"><span>'*/+t('landing.built_by')+'</span>'+studhubLogo(20)+'</div></section>'+
     '<section class="lg:pt-10"><div class="rounded-2xl border border-border bg-card p-6 shadow-sm">'+renderAuthCard()+'</div></section></main>';
 }
 
